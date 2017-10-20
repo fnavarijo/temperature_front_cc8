@@ -1,3 +1,4 @@
+const path = require('path');
 var express = require('express');
 var router = express.Router();
 // Parse Url Request
@@ -23,7 +24,7 @@ router.get('/agregarPlataforma', function(req, res, next) {
 });
 
 router.get('/consultas', function(req, res, next) {
-  res.render('consultas', { title: 'Página de Administración' });
+  res.render('consultas', { title: 'Página de Administración', modulePath: path.resolve(__dirname, '..', 'node_modules', 'chart.js', 'Chart.js') });
 });
 
 router.get('/controlDirecto', function(req, res, next) {
