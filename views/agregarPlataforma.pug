@@ -1,0 +1,15 @@
+extends layout
+
+mixin inputForm(label)
+    div.inputForm
+        span= label
+        input(type="text")
+
+block content
+  div.formPlataform
+    h1 Agregar plataforma
+    form(action="")
+        +inputForm('Servidor')
+        +inputForm('Puerto')
+        div
+            input(type="submit", value="Guardar").btnSave

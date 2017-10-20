@@ -1,0 +1,23 @@
+doctype html
+html
+  head
+    title= title
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet")
+  body
+    div.mainContainer
+      div.headerContainer
+        h1= title
+        div
+          ul.menuContainer
+            li
+              a(href="agregarPlataforma").btnMenu
+                | Agregar nueva plataforma
+            li
+              a(href="consultas").btnMenu
+                | Consultas
+            li
+              a(href="controlDirecto").btnMenu
+                | Control directo
+    div.contentShow
+      block content
