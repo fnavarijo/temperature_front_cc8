@@ -1,15 +1,15 @@
 extends layout
 
-mixin inputForm(label)
+mixin inputForm(label, name)
     div.inputForm
         span= label
-        input(type="text")
+        input(type="text", name=`${name}`)
 
 block content
   div.formPlataform
     h1 Agregar plataforma
-    form(action="")
-        +inputForm('Servidor')
-        +inputForm('Puerto')
+    form(action="/agregarPlataforma" method="post")
+        +inputForm('Servidor', 'server')
+        +inputForm('Puerto', 'port')
         div
             input(type="submit", value="Guardar").btnSave
