@@ -67,4 +67,15 @@ router.get('/controlDirecto', function(req, res, next) {
   res.render('controlDirecto', { title: 'Página de Administración' });
 });
 
+router.post('/controlDirecto', function(req, res, next) {
+  const { rotation } = req.body;
+  axios.post('/change', { change: { "id01": { rotation, date: new Date() } } } )
+    .then((response) => {
+      res.redirect('/controlDirecto');
+      // res.render('controlDirecto', { title: 'Página de Administración' });
+    }).catch(err => {
+      console.log('Error', error);
+    });
+});
+
 module.exports = router;
