@@ -9,15 +9,15 @@ const multer = require('multer')();
 const moment = require('moment');
 
 const DB_PLATFORM = 'platform';
-const DB_TABLE = 'control';
+const DB_INFO_PLATFORM = 'infoPlatform';
 
 console.log('AXIOS CALL: ', axios);
 axios.defaults.baseURL = 'http://docker_web_1:3000/';
 
 const nano = require('nano')('http://docker_couch_front_1:5984');
-nano.db.create(DB_TABLE);
+nano.db.create(DB_INFO_PLATFORM);
 nano.db.create(DB_PLATFORM);
-const controlTable = nano.db.use(DB_TABLE);
+const infoPlatformTable = nano.db.use(DB_INFO_PLATFORM);
 const platformTable = nano.db.use(DB_PLATFORM);
 
 express().use(bodyParser.json());
@@ -41,8 +41,14 @@ router.post('/agregarPlataforma', function(req, res, next) {
         console.log(err);
         res.status(500).send(err);
     } else {
-        console.log(req);
-        res.redirect('/agregarPlataforma');
+        const withPort = port ? `:${port}` : '';
+        axios.post(`http://${server}${withPort}/info`)
+          .then(({data}) => {
+            infoPlatformTable.insert({ server: data }, null, (err, body) => {
+              if (err) console.log('agregarPlatform[POST].ERROR: ', err);
+              res.redirect('/agregarPlataforma');
+            });
+          }).catch(err => res.render('agregarPlataforma', { title: 'Página de Administración', error: 'No pudo obtener informacion de server' }));
     } 
   });
 });
@@ -52,28 +58,54 @@ const inputDataFormat = 'YYYY-MM-DD';
 router.get('/consultas', function(req, res, next) {
   let start_date = req.query.start_date ||  "2017-10-23";
   let finish_date = req.query.finish_date ||  "2017-10-24";
+  const idHardware = req.query.idHardware;
+
   const formatStartDate = start_date + 'T00:00:00';
   const formatFinishDate = finish_date + 'T23:59:59';
-  console.log('PARAM QUERY; ', formatStartDate, formatFinishDate);
-  axios.post('/search', { search: { id_hardware: "id01", start_date:formatStartDate, finish_date:formatFinishDate } })
-    .then(function ({ data }) {
-      console.log('Response server: ', data );
-      const dateTimes = _.map(_.map(data.data, (dataObj) => _.keys(dataObj)[0]), date => moment(date).format('DD-MM-YYYY HH:mm:ss'));
-      const rotateValues = _.map(data.data, (dataObj) => _.values(dataObj)[0].sensor);
-      res.render('consultas', { title: 'Página de Administración', dateTimes, rotateValues });
+
+  axios.post('/info').then((result) => {
+    const hardwareInfo = _.keys(result.data.hardware);
+
+    if (idHardware) {
+      axios.post('/search', { search: { id_hardware: idHardware, start_date:formatStartDate, finish_date:formatFinishDate } })
+        .then(function ({ data }) {
+          // console.log('Response server: ', data );
+          const dateTimes = _.map(data.data, (date, idx) => moment(idx).format('DD-MM-YYYY HH:mm:ss'));
+          const rotateValues = _.map(data.data, (dataObj) => dataObj.sensor);
+          res.render('consultas', { title: 'Página de Administración', dateTimes, rotateValues, hardwareInfo, idHardware });
+      }).catch(function (error) {
+          console.log('Error', error);
+      });
+    } else res.render('consultas', { title: 'Página de Administración', hardwareInfo });
+
   }).catch(function (error) {
       console.log('Error', error);
   });
-  
 });
 
 router.get('/controlDirecto', function(req, res, next) {
-  res.render('controlDirecto', { title: 'Página de Administración' });
+  axios.post('/info').then((result) => {
+    const hardwareArray = [];
+    _.forEach(result.data.hardware, (hardwareInfo, id) => { if(hardwareInfo.type == 'input') hardwareArray.push(id)  });
+    console.log(hardwareArray);
+    
+    // const hardwareInfo = _.keys(dataInfo);
+
+    res.render('controlDirecto', { title: 'Página de Administración', hardwareArray });
+  })
+  
+  
 });
 
 router.post('/controlDirecto', function(req, res, next) {
-  const { rotation } = req.body;
-  axios.post('/change', { change: { "id01": { sensor: rotation, date: new Date() } } } )
+  const { status, freq, idHardware  } = req.body;
+  
+  const newStatus = status == 'on';
+  console.log('HARDWARE INFO: ', newStatus);
+  const paramsObject = {};
+  paramsObject[idHardware] = { status: newStatus, freq };
+
+  axios.post('/change', { change: paramsObject } )
     .then((response) => {
       res.redirect('/controlDirecto');
       // res.render('controlDirecto', { title: 'Página de Administración' });
@@ -81,5 +113,6 @@ router.post('/controlDirecto', function(req, res, next) {
       console.log('Error', error);
     });
 });
+
 
 module.exports = router;

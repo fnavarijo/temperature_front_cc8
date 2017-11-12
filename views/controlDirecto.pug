@@ -5,9 +5,22 @@ mixin inputForm(label, name)
         span= label
         input(type="text", name=`${name}`)
 
+mixin checkForm(label, name)
+    div.inputForm
+        span= label
+        input(type="checkbox", name=`${name}`)
+
+mixin optionGenerator(inputArray)
+    each item in inputArray
+        option(value=`${item}`)
+            != item
+
 block content
   h1 Control directo
   div
     form(action="/controlDirecto" method="post")
-      +inputForm('rotation', 'rotation')
+      select(name="idHardware")
+        +optionGenerator(hardwareArray)
+      +checkForm('status', 'status')
+      +inputForm('frecuencia', 'freq')
       input(type="submit", value="Guardar").btnSave

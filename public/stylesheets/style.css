@@ -80,3 +80,8 @@ body {
   color: #fff;
   cursor: pointer;
 }
+
+.errorMessage {
+  color: rgb(136, 28, 28);
+  margin-top: 25px;
+}

@@ -5,9 +5,16 @@ mixin dateInput(label, name)
         span= label
         input(type="text", name=`${name}`, class!=attributes.class)
 
+mixin optionGenerator(inputArray)
+    each item in inputArray
+        option(value=`${item}`)
+            != item
+
 block content
-  h1 Consulta de Hardware
+  h1 Consulta de Hardware (#{idHardware})
   form(action="consultas")
+    select(name="idHardware")
+        +optionGenerator(hardwareInfo)
     +dateInput('Fecha inicial ', 'start_date')(class="initialDatePicker")
     +dateInput('Fecha final ', 'finish_date')(class="finalDatePicker")
     input(type="submit", value="Filtrar").btnFilter
