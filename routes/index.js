@@ -6,6 +6,7 @@ const axios = require('axios');
 // Parse Url Request
 const bodyParser = require('body-parser');
 const multer = require('multer')();
+const moment = require('moment');
 
 const DB_PLATFORM = 'platform';
 const DB_TABLE = 'control';
@@ -46,16 +47,19 @@ router.post('/agregarPlataforma', function(req, res, next) {
   });
 });
 
+const inputDataFormat = 'YYYY-MM-DD';
 // test path: http://localhost:3001/consultas?start_date=2017-10-23T23:59:50.636Z&finish_date=2017-10-24T23:59:50.636Z&
 router.get('/consultas', function(req, res, next) {
-  let start_date = req.query.start_date ||  "2017-10-23T23:59:50.636Z";
-  let finish_date = req.query.finish_date ||  "2017-10-24T23:59:50.636Z";
-  console.log('PARAM QUERY; ', start_date, finish_date);
-  axios.post('/search', { search: { id_hardware: "id01", start_date, finish_date } })
+  let start_date = req.query.start_date ||  "2017-10-23";
+  let finish_date = req.query.finish_date ||  "2017-10-24";
+  const formatStartDate = start_date + 'T00:00:00';
+  const formatFinishDate = finish_date + 'T23:59:59';
+  console.log('PARAM QUERY; ', formatStartDate, formatFinishDate);
+  axios.post('/search', { search: { id_hardware: "id01", start_date:formatStartDate, finish_date:formatFinishDate } })
     .then(function ({ data }) {
-      const dateTimes = _.map(data.data, (dataObj) => _.keys(dataObj)[0]);
-      const rotateValues = _.map(data.data, (dataObj) => _.values(dataObj)[0].rotation);
-      console.log('Response server: ', dateTimes );
+      console.log('Response server: ', data );
+      const dateTimes = _.map(_.map(data.data, (dataObj) => _.keys(dataObj)[0]), date => moment(date).format('DD-MM-YYYY HH:mm:ss'));
+      const rotateValues = _.map(data.data, (dataObj) => _.values(dataObj)[0].sensor);
       res.render('consultas', { title: 'Página de Administración', dateTimes, rotateValues });
   }).catch(function (error) {
       console.log('Error', error);
@@ -69,7 +73,7 @@ router.get('/controlDirecto', function(req, res, next) {
 
 router.post('/controlDirecto', function(req, res, next) {
   const { rotation } = req.body;
-  axios.post('/change', { change: { "id01": { rotation, date: new Date() } } } )
+  axios.post('/change', { change: { "id01": { sensor: rotation, date: new Date() } } } )
     .then((response) => {
       res.redirect('/controlDirecto');
       // res.render('controlDirecto', { title: 'Página de Administración' });

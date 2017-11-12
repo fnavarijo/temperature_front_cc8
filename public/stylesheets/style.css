@@ -72,3 +72,11 @@ body {
   color: #fff;
   cursor: pointer;
 }
+
+.btnFilter {
+  padding: 8px;
+  border: 0;
+  background-color: #0fa080;
+  color: #fff;
+  cursor: pointer;
+}

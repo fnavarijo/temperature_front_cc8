@@ -1,12 +1,36 @@
 extends layout
 
+mixin dateInput(label, name)
+    div.inputForm
+        span= label
+        input(type="text", name=`${name}`, class!=attributes.class)
+
 block content
   h1 Consulta de Hardware
+  form(action="consultas")
+    +dateInput('Fecha inicial ', 'start_date')(class="initialDatePicker")
+    +dateInput('Fecha final ', 'finish_date')(class="finalDatePicker")
+    input(type="submit", value="Filtrar").btnFilter
   canvas(id="usageChart")
 block script
   //- script(src=`${modulePath}`)
   script(src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.js")
+  script(src="/javascripts/datepicker.min.js")
+  script(src="/javascripts/moment.js")
   script.
+    const formatTime = 'YYYY-MM-DD';
+    datepicker('.initialDatePicker', {
+        formatter: function(element, date) {
+            const dateForm = moment(date).format(formatTime);
+            element.value = dateForm;
+        }
+    });
+    datepicker('.finalDatePicker', {
+        formatter: function(element, date) {
+            const dateForm = moment(date).format(formatTime);
+            element.value = dateForm;
+        }
+    });
     const ctx = document.getElementById('usageChart').getContext('2d');
     const chart = new Chart(ctx, {
         // The type of chart we want to create
@@ -16,7 +40,7 @@ block script
         data: {
             labels: `#{dateTimes}`.split(","),
             datasets: [{
-                label: "Hardware functionality",
+                label: "Hardware results",
                 borderColor: 'rgb(52, 58, 239)',
                 data: `#{rotateValues}`.split(","),
             }]
